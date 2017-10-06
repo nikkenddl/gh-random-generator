@@ -72,7 +72,7 @@ public class Script_Instance : GH_ScriptInstance
     if (sigma != null) {
       _sigma = Convert.ToDouble(sigma);
     }
-    
+
 
     // Generate 2 uniform distributions.
     init_genrand((uint) seed);
@@ -104,8 +104,6 @@ public class Script_Instance : GH_ScriptInstance
     }
     return (result);
   }
-
-
 
   /* ---- MODIFIED ORIGINAL CODE ---- */
 
@@ -153,14 +151,14 @@ public class Script_Instance : GH_ScriptInstance
   */
 
   /* Period parameters */
-  static uint N = 624;
-  static uint M = 397;
-  static ulong MATRIX_A = 0x9908b0dfUL;   /* constant vector a */
-  static ulong UPPER_MASK = 0x80000000UL; /* most significant w-r bits */
-  static ulong LOWER_MASK = 0x7fffffffUL; /* least significant r bits */
+  const uint N = 624;
+  const uint M = 397;
+  const ulong MATRIX_A = 0x9908b0dfUL;   /* constant vector a */
+  const ulong UPPER_MASK = 0x80000000UL; /* most significant w-r bits */
+  const ulong LOWER_MASK = 0x7fffffffUL; /* least significant r bits */
 
-  static ulong[] mt = new ulong[N]; /* the array for the state vector  */
-  static uint mti = N + 1; /* mti==N+1 means mt[N] is not initialized */
+  ulong[] mt = new ulong[N]; /* the array for the state vector  */
+  uint mti = N + 1; /* mti==N+1 means mt[N] is not initialized */
 
   /* initializes mt[N] with a seed */
   void init_genrand(ulong s)
@@ -226,7 +224,7 @@ public class Script_Instance : GH_ScriptInstance
 }
         for (;kk<N-1;kk++) {
             y = (mt[kk]&UPPER_MASK)|(mt[kk+1]&LOWER_MASK);
-            mt[kk] = mt[(int)(kk+(M-N))] ^ (y >> 1) ^ mag01[y & 0x1UL];
+            mt[kk] = mt[unchecked((int)(kk+(M-N)))] ^ (y >> 1) ^ mag01[y & 0x1UL];
         }
         y = (mt[N-1]&UPPER_MASK)|(mt[0]&LOWER_MASK);
         mt[N-1] = mt[M-1] ^ (y >> 1) ^ mag01[y & 0x1UL];
@@ -279,25 +277,6 @@ double genrand_res53()
   return(a * 67108864.0 + b) * (1.0 / 9007199254740992.0);
 }
 /* These real versions are due to Isaku Wada, 2002/01/09 added */
-
-int main()
-{
-  int i;
-  ulong[] init = {0x123UL, 0x234UL, 0x345UL, 0x456UL};
-uint length = 4U;
-  init_by_array(init, length);
-  Print("1000 outputs of genrand_int32()\n");
-  for (i = 0; i < 1000; i++) {
-    Print("{0}", genrand_int32());
-    if (i % 5 == 4) Print("\n");
-  }
-  Print("\n1000 outputs of genrand_real2()\n");
-  for (i = 0; i < 1000; i++) {
-    Print("{0}", genrand_real2());
-    if (i % 5 == 4) Print("\n");
-  }
-  return 0;
-}
 
   // </Custom additional code> 
 

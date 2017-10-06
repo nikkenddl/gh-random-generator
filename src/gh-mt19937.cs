@@ -65,14 +65,38 @@ public class Script_Instance : GH_ScriptInstance
   /// Output parameters as ref arguments. You don't have to assign output parameters, 
   /// they will have a default value.
   /// </summary>
-  private void RunScript(int n, int seed, ref object result)
+  private void RunScript(System.Object range, int n, int seed, ref object result)
   {
     
+    Interval _range = new Interval(0, 1);
+    bool hasRange = false;
+    if (range != null) {
+      try {
+        _range = (Interval) range;
+      }
+      catch {
+        try {
+          _range = new Interval(0, (double) range);
+        }
+        catch {
+          Print("Wrong Input range format: range must be an Interval or a Number");
+        }
+      }
+      hasRange = true;
+    }
+
     init_genrand((uint) seed);
 
     var _result = new List<double>();
-    for (int i = 0; i < n; i++) {
-      _result.Add(genrand_res53());
+    if (!hasRange) {
+      for (int i = 0; i < n; i++) {
+        _result.Add(genrand_res53());
+      }
+    }
+    else {
+      for (int i = 0; i < n; i++) {
+        _result.Add(genrand_res53() * _range.Length + _range.T0);
+      }
     }
 
     result = _result;
@@ -281,16 +305,22 @@ double genrand_res53()
     this. doc = this.RhinoDocument;
 
     //2. Assign input parameters
-        int n = default(int);
+        System.Object range = default(System.Object);
     if (inputs[0] != null)
     {
-      n = (int)(inputs[0]);
+      range = (System.Object)(inputs[0]);
+    }
+
+    int n = default(int);
+    if (inputs[1] != null)
+    {
+      n = (int)(inputs[1]);
     }
 
     int seed = default(int);
-    if (inputs[1] != null)
+    if (inputs[2] != null)
     {
-      seed = (int)(inputs[1]);
+      seed = (int)(inputs[2]);
     }
 
 
@@ -300,7 +330,7 @@ double genrand_res53()
 
 
     //4. Invoke RunScript
-    RunScript(n, seed, ref result);
+    RunScript(range, n, seed, ref result);
       
     try
     {
