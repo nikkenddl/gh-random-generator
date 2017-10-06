@@ -33,46 +33,46 @@ public class Script_Instance : GH_ScriptInstance
 #region Utility functions
   /// <summary>Print a String to the [Out] Parameter of the Script component.</summary>
   /// <param name="text">String to print.</param>
-  private void Print(string text) { /* Implementation hidden. */ }
+  private void Print(string text) { __out.Add(text); }
   /// <summary>Print a formatted String to the [Out] Parameter of the Script component.</summary>
   /// <param name="format">String format.</param>
   /// <param name="args">Formatting parameters.</param>
-  private void Print(string format, params object[] args) { /* Implementation hidden. */ }
+  private void Print(string format, params object[] args) { __out.Add(string.Format(format, args)); }
   /// <summary>Print useful information about an object instance to the [Out] Parameter of the Script component. </summary>
   /// <param name="obj">Object instance to parse.</param>
-  private void Reflect(object obj) { /* Implementation hidden. */ }
+  private void Reflect(object obj) { __out.Add(GH_ScriptComponentUtilities.ReflectType_CS(obj)); }
   /// <summary>Print the signatures of all the overloads of a specific method to the [Out] Parameter of the Script component. </summary>
   /// <param name="obj">Object instance to parse.</param>
-  private void Reflect(object obj, string method_name) { /* Implementation hidden. */ }
+  private void Reflect(object obj, string method_name) { __out.Add(GH_ScriptComponentUtilities.ReflectType_CS(obj, method_name)); }
 #endregion
 
 #region Members
   /// <summary>Gets the current Rhino document.</summary>
-  private readonly RhinoDoc RhinoDocument;
+  private RhinoDoc RhinoDocument;
   /// <summary>Gets the Grasshopper document that owns this script.</summary>
-  private readonly GH_Document GrasshopperDocument;
+  private GH_Document GrasshopperDocument;
   /// <summary>Gets the Grasshopper script component that owns this script.</summary>
-  private readonly IGH_Component Component;
+  private IGH_Component Component; 
   /// <summary>
   /// Gets the current iteration count. The first call to RunScript() is associated with Iteration==0.
   /// Any subsequent call within the same solution will increment the Iteration count.
   /// </summary>
-  private readonly int Iteration;
+  private int Iteration;
 #endregion
 
   /// <summary>
-  /// This procedure contains the user code. Input parameters are provided as regular arguments,
-  /// Output parameters as ref arguments. You don't have to assign output parameters,
+  /// This procedure contains the user code. Input parameters are provided as regular arguments, 
+  /// Output parameters as ref arguments. You don't have to assign output parameters, 
   /// they will have a default value.
   /// </summary>
   private void RunScript(int n, System.Object sigma, double mu, int seed, ref object normal1, ref object normal2, ref object uniform1, ref object uniform2)
   {
-
+    
     double _sigma = 1;
     if (sigma != null) {
       _sigma = Convert.ToDouble(sigma);
     }
-
+    
 
     // Generate 2 uniform distributions.
     init_genrand((uint) seed);
@@ -96,7 +96,7 @@ public class Script_Instance : GH_ScriptInstance
   }
 
   // <Custom additional code> 
-
+  
   private double[] genUniformRandom(int n) {
     double[] result = new double[n];
     for (int i = 0; i < n; i++) {
@@ -300,4 +300,189 @@ uint length = 4U;
 }
 
   // </Custom additional code> 
+
+  private List<string> __err = new List<string>(); //Do not modify this list directly.
+  private List<string> __out = new List<string>(); //Do not modify this list directly.
+  private RhinoDoc doc = RhinoDoc.ActiveDoc;       //Legacy field.
+  private IGH_ActiveObject owner;                  //Legacy field.
+  private int runCount;                            //Legacy field.
+  
+  public override void InvokeRunScript(IGH_Component owner, object rhinoDocument, int iteration, List<object> inputs, IGH_DataAccess DA)
+  {
+    //Prepare for a new run...
+    //1. Reset lists
+    this.__out.Clear();
+    this.__err.Clear();
+
+    this.Component = owner;
+    this.Iteration = iteration;
+    this.GrasshopperDocument = owner.OnPingDocument();
+    this.RhinoDocument = rhinoDocument as Rhino.RhinoDoc;
+
+    this.owner = this.Component;
+    this.runCount = this.Iteration;
+    this. doc = this.RhinoDocument;
+
+    //2. Assign input parameters
+        int n = default(int);
+    if (inputs[0] != null)
+    {
+      n = (int)(inputs[0]);
+    }
+
+    System.Object sigma = default(System.Object);
+    if (inputs[1] != null)
+    {
+      sigma = (System.Object)(inputs[1]);
+    }
+
+    double mu = default(double);
+    if (inputs[2] != null)
+    {
+      mu = (double)(inputs[2]);
+    }
+
+    int seed = default(int);
+    if (inputs[3] != null)
+    {
+      seed = (int)(inputs[3]);
+    }
+
+
+
+    //3. Declare output parameters
+      object normal1 = null;
+  object normal2 = null;
+  object uniform1 = null;
+  object uniform2 = null;
+
+
+    //4. Invoke RunScript
+    RunScript(n, sigma, mu, seed, ref normal1, ref normal2, ref uniform1, ref uniform2);
+      
+    try
+    {
+      //5. Assign output parameters to component...
+            if (normal1 != null)
+      {
+        if (GH_Format.TreatAsCollection(normal1))
+        {
+          IEnumerable __enum_normal1 = (IEnumerable)(normal1);
+          DA.SetDataList(1, __enum_normal1);
+        }
+        else
+        {
+          if (normal1 is Grasshopper.Kernel.Data.IGH_DataTree)
+          {
+            //merge tree
+            DA.SetDataTree(1, (Grasshopper.Kernel.Data.IGH_DataTree)(normal1));
+          }
+          else
+          {
+            //assign direct
+            DA.SetData(1, normal1);
+          }
+        }
+      }
+      else
+      {
+        DA.SetData(1, null);
+      }
+      if (normal2 != null)
+      {
+        if (GH_Format.TreatAsCollection(normal2))
+        {
+          IEnumerable __enum_normal2 = (IEnumerable)(normal2);
+          DA.SetDataList(2, __enum_normal2);
+        }
+        else
+        {
+          if (normal2 is Grasshopper.Kernel.Data.IGH_DataTree)
+          {
+            //merge tree
+            DA.SetDataTree(2, (Grasshopper.Kernel.Data.IGH_DataTree)(normal2));
+          }
+          else
+          {
+            //assign direct
+            DA.SetData(2, normal2);
+          }
+        }
+      }
+      else
+      {
+        DA.SetData(2, null);
+      }
+      if (uniform1 != null)
+      {
+        if (GH_Format.TreatAsCollection(uniform1))
+        {
+          IEnumerable __enum_uniform1 = (IEnumerable)(uniform1);
+          DA.SetDataList(3, __enum_uniform1);
+        }
+        else
+        {
+          if (uniform1 is Grasshopper.Kernel.Data.IGH_DataTree)
+          {
+            //merge tree
+            DA.SetDataTree(3, (Grasshopper.Kernel.Data.IGH_DataTree)(uniform1));
+          }
+          else
+          {
+            //assign direct
+            DA.SetData(3, uniform1);
+          }
+        }
+      }
+      else
+      {
+        DA.SetData(3, null);
+      }
+      if (uniform2 != null)
+      {
+        if (GH_Format.TreatAsCollection(uniform2))
+        {
+          IEnumerable __enum_uniform2 = (IEnumerable)(uniform2);
+          DA.SetDataList(4, __enum_uniform2);
+        }
+        else
+        {
+          if (uniform2 is Grasshopper.Kernel.Data.IGH_DataTree)
+          {
+            //merge tree
+            DA.SetDataTree(4, (Grasshopper.Kernel.Data.IGH_DataTree)(uniform2));
+          }
+          else
+          {
+            //assign direct
+            DA.SetData(4, uniform2);
+          }
+        }
+      }
+      else
+      {
+        DA.SetData(4, null);
+      }
+
+    }
+    catch (Exception ex)
+    {
+      this.__err.Add(string.Format("Script exception: {0}", ex.Message));
+    }
+    finally
+    {
+      //Add errors and messages... 
+      if (owner.Params.Output.Count > 0)
+      {
+        if (owner.Params.Output[0] is Grasshopper.Kernel.Parameters.Param_String)
+        {
+          List<string> __errors_plus_messages = new List<string>();
+          if (this.__err != null) { __errors_plus_messages.AddRange(this.__err); }
+          if (this.__out != null) { __errors_plus_messages.AddRange(this.__out); }
+          if (__errors_plus_messages.Count > 0) 
+            DA.SetDataList(0, __errors_plus_messages);
+        }
+      }
+    }
+  }
 }

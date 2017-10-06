@@ -33,45 +33,45 @@ public class Script_Instance : GH_ScriptInstance
 #region Utility functions
   /// <summary>Print a String to the [Out] Parameter of the Script component.</summary>
   /// <param name="text">String to print.</param>
-  private void Print(string text) { /* Implementation hidden. */ }
+  private void Print(string text) { __out.Add(text); }
   /// <summary>Print a formatted String to the [Out] Parameter of the Script component.</summary>
   /// <param name="format">String format.</param>
   /// <param name="args">Formatting parameters.</param>
-  private void Print(string format, params object[] args) { /* Implementation hidden. */ }
+  private void Print(string format, params object[] args) { __out.Add(string.Format(format, args)); }
   /// <summary>Print useful information about an object instance to the [Out] Parameter of the Script component. </summary>
   /// <param name="obj">Object instance to parse.</param>
-  private void Reflect(object obj) { /* Implementation hidden. */ }
+  private void Reflect(object obj) { __out.Add(GH_ScriptComponentUtilities.ReflectType_CS(obj)); }
   /// <summary>Print the signatures of all the overloads of a specific method to the [Out] Parameter of the Script component. </summary>
   /// <param name="obj">Object instance to parse.</param>
-  private void Reflect(object obj, string method_name) { /* Implementation hidden. */ }
+  private void Reflect(object obj, string method_name) { __out.Add(GH_ScriptComponentUtilities.ReflectType_CS(obj, method_name)); }
 #endregion
 
 #region Members
   /// <summary>Gets the current Rhino document.</summary>
-  private readonly RhinoDoc RhinoDocument;
+  private RhinoDoc RhinoDocument;
   /// <summary>Gets the Grasshopper document that owns this script.</summary>
-  private readonly GH_Document GrasshopperDocument;
+  private GH_Document GrasshopperDocument;
   /// <summary>Gets the Grasshopper script component that owns this script.</summary>
-  private readonly IGH_Component Component;
+  private IGH_Component Component; 
   /// <summary>
   /// Gets the current iteration count. The first call to RunScript() is associated with Iteration==0.
   /// Any subsequent call within the same solution will increment the Iteration count.
   /// </summary>
-  private readonly int Iteration;
+  private int Iteration;
 #endregion
 
   /// <summary>
-  /// This procedure contains the user code. Input parameters are provided as regular arguments,
-  /// Output parameters as ref arguments. You don't have to assign output parameters,
+  /// This procedure contains the user code. Input parameters are provided as regular arguments, 
+  /// Output parameters as ref arguments. You don't have to assign output parameters, 
   /// they will have a default value.
   /// </summary>
-  private void RunScript(int nRand, int seed, ref object result)
+  private void RunScript(int n, int seed, ref object result)
   {
-
+    
     init_genrand((uint) seed);
 
     var _result = new List<double>();
-    for (int i = 0; i < nRand; i++) {
+    for (int i = 0; i < n; i++) {
       _result.Add(genrand_res53());
     }
 
@@ -80,7 +80,7 @@ public class Script_Instance : GH_ScriptInstance
   }
 
   // <Custom additional code> 
-
+  
 
   /* ---- MODIFIED ORIGINAL CODE ---- */
 
@@ -128,14 +128,14 @@ public class Script_Instance : GH_ScriptInstance
   */
 
   /* Period parameters */
-  static uint N = 624;
-  static uint M = 397;
-  static ulong MATRIX_A = 0x9908b0dfUL;   /* constant vector a */
-  static ulong UPPER_MASK = 0x80000000UL; /* most significant w-r bits */
-  static ulong LOWER_MASK = 0x7fffffffUL; /* least significant r bits */
+  const uint N = 624;
+  const uint M = 397;
+  const ulong MATRIX_A = 0x9908b0dfUL;   /* constant vector a */
+  const ulong UPPER_MASK = 0x80000000UL; /* most significant w-r bits */
+  const ulong LOWER_MASK = 0x7fffffffUL; /* least significant r bits */
 
-  static ulong[] mt = new ulong[N]; /* the array for the state vector  */
-  static uint mti = N + 1; /* mti==N+1 means mt[N] is not initialized */
+  ulong[] mt = new ulong[N]; /* the array for the state vector  */
+  uint mti = N + 1; /* mti==N+1 means mt[N] is not initialized */
 
   /* initializes mt[N] with a seed */
   void init_genrand(ulong s)
@@ -201,7 +201,7 @@ public class Script_Instance : GH_ScriptInstance
 }
         for (;kk<N-1;kk++) {
             y = (mt[kk]&UPPER_MASK)|(mt[kk+1]&LOWER_MASK);
-            mt[kk] = mt[(int)(kk+(M-N))] ^ (y >> 1) ^ mag01[y & 0x1UL];
+            mt[kk] = mt[unchecked((int)(kk+(M-N)))] ^ (y >> 1) ^ mag01[y & 0x1UL];
         }
         y = (mt[N-1]&UPPER_MASK)|(mt[0]&LOWER_MASK);
         mt[N-1] = mt[M-1] ^ (y >> 1) ^ mag01[y & 0x1UL];
@@ -255,24 +255,101 @@ double genrand_res53()
 }
 /* These real versions are due to Isaku Wada, 2002/01/09 added */
 
-int main()
-{
-  int i;
-  ulong[] init = {0x123UL, 0x234UL, 0x345UL, 0x456UL};
-uint length = 4U;
-  init_by_array(init, length);
-  Print("1000 outputs of genrand_int32()\n");
-  for (i = 0; i < 1000; i++) {
-    Print("{0}", genrand_int32());
-    if (i % 5 == 4) Print("\n");
-  }
-  Print("\n1000 outputs of genrand_real2()\n");
-  for (i = 0; i < 1000; i++) {
-    Print("{0}", genrand_real2());
-    if (i % 5 == 4) Print("\n");
-  }
-  return 0;
-}
 
   // </Custom additional code> 
+
+  private List<string> __err = new List<string>(); //Do not modify this list directly.
+  private List<string> __out = new List<string>(); //Do not modify this list directly.
+  private RhinoDoc doc = RhinoDoc.ActiveDoc;       //Legacy field.
+  private IGH_ActiveObject owner;                  //Legacy field.
+  private int runCount;                            //Legacy field.
+  
+  public override void InvokeRunScript(IGH_Component owner, object rhinoDocument, int iteration, List<object> inputs, IGH_DataAccess DA)
+  {
+    //Prepare for a new run...
+    //1. Reset lists
+    this.__out.Clear();
+    this.__err.Clear();
+
+    this.Component = owner;
+    this.Iteration = iteration;
+    this.GrasshopperDocument = owner.OnPingDocument();
+    this.RhinoDocument = rhinoDocument as Rhino.RhinoDoc;
+
+    this.owner = this.Component;
+    this.runCount = this.Iteration;
+    this. doc = this.RhinoDocument;
+
+    //2. Assign input parameters
+        int n = default(int);
+    if (inputs[0] != null)
+    {
+      n = (int)(inputs[0]);
+    }
+
+    int seed = default(int);
+    if (inputs[1] != null)
+    {
+      seed = (int)(inputs[1]);
+    }
+
+
+
+    //3. Declare output parameters
+      object result = null;
+
+
+    //4. Invoke RunScript
+    RunScript(n, seed, ref result);
+      
+    try
+    {
+      //5. Assign output parameters to component...
+            if (result != null)
+      {
+        if (GH_Format.TreatAsCollection(result))
+        {
+          IEnumerable __enum_result = (IEnumerable)(result);
+          DA.SetDataList(1, __enum_result);
+        }
+        else
+        {
+          if (result is Grasshopper.Kernel.Data.IGH_DataTree)
+          {
+            //merge tree
+            DA.SetDataTree(1, (Grasshopper.Kernel.Data.IGH_DataTree)(result));
+          }
+          else
+          {
+            //assign direct
+            DA.SetData(1, result);
+          }
+        }
+      }
+      else
+      {
+        DA.SetData(1, null);
+      }
+
+    }
+    catch (Exception ex)
+    {
+      this.__err.Add(string.Format("Script exception: {0}", ex.Message));
+    }
+    finally
+    {
+      //Add errors and messages... 
+      if (owner.Params.Output.Count > 0)
+      {
+        if (owner.Params.Output[0] is Grasshopper.Kernel.Parameters.Param_String)
+        {
+          List<string> __errors_plus_messages = new List<string>();
+          if (this.__err != null) { __errors_plus_messages.AddRange(this.__err); }
+          if (this.__out != null) { __errors_plus_messages.AddRange(this.__out); }
+          if (__errors_plus_messages.Count > 0) 
+            DA.SetDataList(0, __errors_plus_messages);
+        }
+      }
+    }
+  }
 }
