@@ -1,13 +1,19 @@
 # gh-random-generator
 
 ## About
-- Mersenne Twister for Grasshopper.
+- Mersenne Twister (MT) for Grasshopper.
 - Better pseudorandom generator compared to Grasshopper's original "Random" component which uses LCG.
 - Download Binary [Here](https://github.com/nikkenddl/gh-random-generator/tree/master/ghuser)
 
 ### Mersenne Twister
 
 - [Original Authors' webpage](http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/mt.html).
+
+### Advantages
+
+![LCG and Mersenne Twister](https://raw.githubusercontent.com/nikkenddl/gh-random-generator/master/docs/images/LCG-MT-Comparison.png)
+
+- With MT, one can easily generate uniformly distributed points in 3 or higher dimensions.
 
 ## Usage
 
