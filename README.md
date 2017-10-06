@@ -7,4 +7,4 @@ Mersenne Twister for Grasshopper.
 
 - Same usage as Random component.
 
-![./doc/img/MT19937_usage.png]
+![Screenshot](./doc/img/MT19937_usage.png)
