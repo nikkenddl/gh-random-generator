@@ -112,7 +112,12 @@ public class Script_Instance : GH_ScriptInstance
   
   double uniformToPower(double y, double min, double max, double power) {
     power += 1;
-    return (Math.Pow(((Math.Pow(max, power) - Math.Pow(min, power)) * y + Math.Pow(min, power)), 1 / power));
+    if (power == 0) {
+      return Math.Exp((Math.Log(max) - Math.Log(min))* y + Math.Log(min));
+    }
+    else {
+      return (Math.Pow(((Math.Pow(max, power) - Math.Pow(min, power)) * y + Math.Pow(min, power)), 1 / power));
+    }
   }
 
 
