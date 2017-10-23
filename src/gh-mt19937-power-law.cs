@@ -69,7 +69,7 @@ public class Script_Instance : GH_ScriptInstance
   {
     
     Interval _range = new Interval(0.01, 1);
-    bool hasRange = false;
+    //bool hasRange = false;
     if (range != null) {
       try {
         _range = (Interval) range;
@@ -83,7 +83,7 @@ public class Script_Instance : GH_ScriptInstance
           throw new Exception ("Wrong Input range format: range must be an Interval or a Number");
         }
       }
-      hasRange = true;
+      //hasRange = true;
     }
 
     if (_range.Min <= 0 || _range.Max <= 0) {
@@ -93,15 +93,8 @@ public class Script_Instance : GH_ScriptInstance
     init_genrand((uint) seed);
 
     var _result = new List<double>();
-    if (!hasRange) {
-      for (int i = 0; i < n; i++) {
-        _result.Add(uniformToPower(genrand_res53(), _range.Min, _range.Max, power));
-      }
-    }
-    else {
-      for (int i = 0; i < n; i++) {
-        _result.Add(uniformToPower(genrand_res53() * _range.Length + _range.T0, _range.Min, _range.Max, power));
-      }
+    for (int i = 0; i < n; i++) {
+      _result.Add(uniformToPower(genrand_res53(), _range.Min, _range.Max, power));
     }
 
     result = _result;
